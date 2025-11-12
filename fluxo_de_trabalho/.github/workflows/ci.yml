@@ -1,0 +1,55 @@
+name: CI - Qualidade de Código
+
+on:
+  push:
+    branches: [ main, integracaoCI ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-style:
+    name: Verificar estilo de código
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # Ajuste conforme sua versão
+
+      - name: Verificar estilo com Checkstyle
+        run: mvn checkstyle:check
+
+  tests:
+    name: Executar testes e verificar cobertura
+    runs-on: ubuntu-latest
+    needs: code-style
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Executar testes com cobertura
+        run: mvn clean verify
+
+      - name: Verificar cobertura mínima de 90%
+        run: |
+          cobertura=$(grep -oPm1 "(?<=<line-rate>)[^<]+" target/site/jacoco/jacoco.xml)
+          coverage=$(awk "BEGIN {print $cobertura * 100}")
+          echo "Cobertura atual: $coverage%"
+          if (( $(echo "$coverage < 90" | bc -l) )); then
+            echo " Cobertura abaixo de 90%"
+            exit 1
+          else
+            echo " Cobertura OK"
+          fi
