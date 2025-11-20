@@ -71,6 +71,13 @@
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.10</version>
+            <configuration>
+        <excludes>
+            <!-- Exclui classes criadas dinamicamente pelo Spring -->
+            <exclude>**/*$*</exclude>
+            <exclude>com/gestao/configuracao/fluxo_de_trabalho/*Application*</exclude>
+        </excludes>
+    </configuration>
             <executions>
                 <execution>
                     <goals>
